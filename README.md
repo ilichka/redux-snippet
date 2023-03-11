@@ -201,3 +201,116 @@ export const removeCustomerAction = (payload) => ({type: REMOVE_CUSTOMER, payloa
 ```
 
 Here we created action and action creator for async code.
+
+Now lets move to saga. In redux-saga we have three main points: workers, watchers, effects.
+Redux-saga based on functions generators. 
+
+First of all lets install redux-saga:
+
+```bash
+  $ npm i redux-saga
+```
+
+Worker is a function, where we execute any async logic.
+
+Watcher is a function generator, where with special functions we choose type of action and worker,
+which will execute by action type. Simply, watcher observes till any action executes. If any worker connected
+to this action watcher calls this worker.
+
+Effects is a set of redux-saga functions, witch helps to make requests, make dispatch, observe workers and so on...
+
+Function generators declaration:
+```typescript
+    function* genFunction() {
+        for(let i = 0; i < 5; i++) {
+            yield i
+        }
+    }
+```
+
+Generator returns us data partially. Here we have key word `yeild`, that equals to a breakpoint:
+```typescript
+    const iter = genFunction()
+    
+    const res = iter.next()
+```
+
+In `res` variable we receive object with next method, that contains such data:
+
+```typescript
+    const res = {
+        value: 0, 
+        done: false,
+    }
+```
+
+Here value equals 0 cause our cycle starts with zero. If we call `iter.next()` more times,
+in the end we will receive: 
+```typescript
+    const res = {
+        value: undefined, 
+        done: true,
+    }
+```
+
+Create saga folder and countSaga.ts file here:
+```typescript
+import {put} from 'redux-saga/effects'
+
+const delay = (ms) => new Promise(res=>setTimeout(res,ms))
+
+function* incrementWorkers() {
+
+}
+
+function* decrementWorkers() {
+
+}
+
+function* countWatcher() {
+
+}
+```
+
+Put effect is a dispatch for async actions. Lets create delay function, that will 
+create fake delay. Update our functions: 
+```typescript
+import {put, takeEvery} from 'redux-saga/effects'
+import {
+    ASYNC_DECREMENT_CASH,
+    ASYNC_INCREMENT_CASH,
+    asyncDecrementCashAction,
+    asyncIncrementCashAction
+} from "../store/cashReducer";
+
+const delay = (ms) => new Promise(res=>setTimeout(res,ms))
+
+function* incrementWorkers() {
+    yield delay(1000)
+    yield put(asyncIncrementCashAction())
+}
+
+function* decrementWorkers() {
+    yield delay(1000)
+    yield put(asyncDecrementCashAction())
+}
+
+export function* countWatcher() {
+    yield takeEvery(ASYNC_INCREMENT_CASH, incrementWorkers)
+    yield takeEvery(ASYNC_DECREMENT_CASH, decrementWorkers)
+}
+```
+
+takeEvery effect accepts action type as a first arg, and worker, that should be executed by this action.
+
+In index.ts in saga folder we create aka combineReducers with all effect: 
+```typescript
+import {all} from 'redux-saga/effects'
+import {countWatcher} from "./countSaga";
+
+export function* rootWatcher() {
+    yield all([countWatcher()])
+}
+```
+
+Then you can simply dispatch your async action creator in component.

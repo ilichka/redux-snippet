@@ -1,12 +1,10 @@
 import * as S from './thunk.styles'
 import {Button} from "../common/button";
-import {useDispatch} from "react-redux";
 import {useActions} from "../../store/hooks";
 import {Customer} from "../../store/thunk/customers";
 import {useTypedSelector} from "../../store/hooks";
 
 export const ThunkTemplate = () => {
-    const dispatch = useDispatch();
     const cash = useTypedSelector((state) => state.cash.cash)
     const customers = useTypedSelector((state) => state.customers.customers)
     const {fetchCustomers, addCash, getCash, addCustomer, removeCustomer} = useActions()

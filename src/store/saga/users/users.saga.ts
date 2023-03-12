@@ -1,7 +1,7 @@
 import {put, takeEvery, call, SagaReturnType} from "redux-saga/effects"
 import {User, UsersActionTypes} from "./users.interface";
 import axios from "axios";
-import {fetchUsers, fetchUsersError, fetchUsersSuccess, setUsers} from "./users.action-creators";
+import {fetchUsers, fetchUsersError, fetchUsersSuccess} from "./users.action-creators";
 
 const fetchUsersFromApi = () => axios.get<User[]>('https://jsonplaceholder.typicode.com/users?_limit=10')
 

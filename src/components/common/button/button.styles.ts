@@ -7,6 +7,7 @@ export const ButtonWrapper = styled.div`
   padding: 5px 10px;
   cursor: pointer;
   transition: opacity ease .3s;
+  user-select: none;
   
   :hover {
     opacity: .8;

@@ -5,14 +5,18 @@ export interface CountState {
 }
 
 export enum CountActionTypes {
+    INCREMENT_SAGA = 'INCREMENT_SAGA',
     INCREMENT = 'INCREMENT',
     INCREMENT_SUCCESS = 'INCREMENT_SUCCESS',
     INCREMENT_ERROR = 'INCREMENT_ERROR',
-    ASYNC_INCREMENT = 'ASYNC_INCREMENT',
+    DECREMENT_SAGA = 'DECREMENT_SAGA',
     DECREMENT = 'DECREMENT',
     DECREMENT_SUCCESS = 'DECREMENT_SUCCESS',
     DECREMENT_ERROR = 'DECREMENT_ERROR',
-    ASYNC_DECREMENT = 'ASYNC_DECREMENT',
+}
+
+export interface IncrementSagaAction {
+    type: CountActionTypes.INCREMENT_SAGA,
 }
 
 export interface IncrementAction {
@@ -28,8 +32,8 @@ export interface IncrementErrorAction {
     payload: string
 }
 
-export interface AsyncIncrementAction {
-    type: CountActionTypes.ASYNC_INCREMENT,
+export interface DecrementSagaAction {
+    type: CountActionTypes.DECREMENT_SAGA,
 }
 
 export interface DecrementAction {
@@ -45,8 +49,4 @@ export interface DecrementErrorAction {
     payload: string
 }
 
-export interface AsyncDecrementAction {
-    type: CountActionTypes.ASYNC_DECREMENT,
-}
-
-export type CountActions = IncrementAction | IncrementSuccessAction | IncrementErrorAction | AsyncIncrementAction | DecrementAction | DecrementSuccessAction | DecrementErrorAction | AsyncDecrementAction
+export type CountActions = IncrementSagaAction | IncrementAction | IncrementSuccessAction | IncrementErrorAction | DecrementSagaAction | DecrementAction | DecrementSuccessAction | DecrementErrorAction

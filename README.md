@@ -1,4 +1,4 @@
-Redux app snippet.
+# Redux snippet.
 
 Redux is a library for working with global state. Simply it is a data storage.
 
@@ -18,76 +18,102 @@ In redux, we have 4 main components:
 3. Reducers
 4. Dispatcher(dispatch)
 
-State is a javascript object, that stores data. Only one source of true. Immutable(always returns new object).
+- State is a javascript object, that stores data. Only one source of true. Immutable(always returns new object).
 
-Action is a javascript object with type of action and any payload. Defines how exactly we can mutate data.
+- Action is a javascript object with type of action and any payload. Defines how exactly we can mutate data.
 
-Reducer is a function, that accepts state and action. By default, returns state. Pure functions.
+- Reducer is a function, that accepts state and action. By default, returns state. Pure functions.
 
-Dispatcher or dispatch function accepts action and delivers this action to reducer.
+- Dispatcher or dispatch function accepts action and delivers this action to reducer.
 
 Action &rarr; Dispatch &rarr; Reducer &rarr; State
 
-To connect our React with Redux we need to add a Provider and pass there a store, created with
-createStore function.
+Some words about files in this snippet. Files in this project are tagged according theirs purpose:
 
-Create reducers:
-```typescript jsx
-// ~/src/store/cashReducer
-const defaultState = {
+- {name}.reducer.{ext} - reducer is here
+- {name}.action-creators.{ext} - action creators are here
+- {name}.interface.{ext} - interface of this module is here
+- {name}.hook.{ext} - hook is here
+- {name}.saga.{ext} - saga components are here
+- {name}.component.{ext} - react component is here
+- {name}.styles.{ext} - styles of react component are here
+
+All files and folders in this project calls according to **kebab-case**.
+
+In this snippet we will consider `saga` and `thunk`. So in store folder we will have two different folders called `saga` and `thunk`.
+
+To connect our React with Redux we need to add a Provider and pass there a store, created with
+**createStore** function.
+
+Let's start from creating reducers: 
+
+```typescript
+// ~/src/store/thunk/cash/cash.reducer.ts
+import {CashActions, CashActionTypes, CashState} from "./cash.interface";
+
+const defaultState: CashState = {
     cash: 0,
 }
 
-const ADD_CASH = "ADD_CASH"
-const GET_CASH = "GET_CASH"
-
-export const cashReducer = (state = defaultState, action) => {
+export const cashReducer = (state = defaultState, action: CashActions): CashState => {
     switch (action.type) {
-        case "ADD_CASH":
+        case CashActionTypes.ADD_CASH:
             return {...state, cash: action.payload + state.cash}
-        case "GET_CASH":
+        case CashActionTypes.GET_CASH:
             return {...state, cash: state.cash - action.payload}
         default:
             return state;
     }
 }
-
-export const addCashAction = (payload) => ({type: ADD_CASH, payload})
-export const getCashAction = (payload) => ({type: GET_CASH, payload})
 ```
 
-```typescript jsx
-// ~/src/store/customerReducer
-const defaultState = {
-    customers: []
+```typescript
+// ~/src/store/thunk/customers/customers.reducer.ts
+import {CustomersAction, CustomersActionTypes, CustomersState} from "./customers.interface";
+
+const defaultState: CustomersState = {
+    customers: [],
+    error: null,
+    loading: false
 }
 
-const ADD_CUSTOMER = "ADD_CUSTOMER"
-const REMOVE_CUSTOMER = "REMOVE_CUSTOMER"
-
-export const customerReducer = (state = defaultState, action) => {
+export const customersReducer = (state = defaultState, action: CustomersAction): CustomersState => {
     switch (action.type) {
-        case ADD_CUSTOMER:
-            return {...state, customers: [...state.customers, action.payload]}
-        case REMOVE_CUSTOMER:
-            return {...state, customers: state.customers.filter((customer)=>customer.id!==action.payload)}
+        case CustomersActionTypes.FETCH_CUSTOMERS:
+            return {...state, loading: true}
+        case CustomersActionTypes.FETCH_CUSTOMERS_SUCCESS:
+            return {...state,loading: false, customers: [...state.customers, ...action.payload]}
+        case CustomersActionTypes.FETCH_CUSTOMERS_ERROR:
+            return {...state,loading: false, error: action.payload}
+        case CustomersActionTypes.ADD_CUSTOMER:
+            return {...state,loading: false, customers: [...state.customers, action.payload]}
+        case CustomersActionTypes.REMOVE_CUSTOMER:
+            return {...state,loading: false, customers: state.customers.filter((customer)=>customer.id !== action.payload.id)}
         default:
             return state;
     }
 }
-
-export const addCustomerAction = (payload) => ({type: ADD_CUSTOMER, payload})
-export const removeCustomerAction = (payload) => ({type: REMOVE_CUSTOMER, payload})
 ```
-In reducers it is advised to create action variables and action creator functions.
+In reducers, it is advised to create action variables and action creator functions.
 
+Create interfaces in `customers.interface.ts` and `cash.interface.ts` files, that describes particular module.
 
 Create actions:
-```typescript jsx
-import {createStore} from "redux";
-import {reducer} from './reducers'
+```typescript
+// ~/src/store/thunk/customers/customers.action-creators.ts
+import {Dispatch} from "redux";
+import {Customer, CustomersAction, CustomersActionTypes} from "./customers.interface";
 
-const store = createStore(reducer)
+export const addCustomer = (customer: Customer) => ({type: CustomersActionTypes.ADD_CUSTOMER, payload: customer})
+export const removeCustomer = (customer: Customer) => ({type: CustomersActionTypes.REMOVE_CUSTOMER, payload: customer})
+```
+
+```typescript
+// ~/src/store/thunk/cash/cash.action-creators.ts
+import {CashActionTypes} from "./cash.interface";
+
+export const addCash = (cashAmount: number) => ({type: CashActionTypes.ADD_CASH, payload: cashAmount})
+export const getCash = (cashAmount: number) => ({type: CashActionTypes.GET_CASH, payload: cashAmount})
 ```
 
 Create store:
@@ -108,6 +134,9 @@ export const store = legacy_createStore(rootReducer)
 Wrap our app with Provider:
 ```typescript jsx
 // ~/src/index
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.component';
 import {Provider} from "react-redux";
 import {store} from "./store";
 
@@ -139,9 +168,9 @@ Open your browser and move to devtools, then open tab calls redux:
 
 ![redux_devtools](public/redux_devtools.png)
 
-To work with async code in redux we can use redux-thunk or redux-saga middleware.
+To work with async code in redux we can use `redux-thunk` or `redux-saga` middleware, as I mentioned earlier.
 
-Lets start from thunk. Install redux-thunk with:
+Let's start from thunk. Install redux-thunk with:
 ```bash
   $ npm i redux-thunk
 ```
@@ -156,53 +185,58 @@ import {applyMiddleware} from "redux";
 export const store = legacy_createStore(rootReducer, composeWithDevTools(applyMiddleware(thunk)))
 ```
 
-In our store folder we created asyncActions folder to store async action. Create a 
-customers file:
+In our store folder we created thunk folder to store logic according thunk middleware. Create a
+fetchCustomers function:
 ```typescript jsx
-// ~/src/store/asyncAction/customers
-import {addManyCustomerAction} from "../customerReducer";
+// ~/src/store/thunk/customers/customers.action-creators.ts
+import {Dispatch} from "redux";
+import {Customer, CustomersAction, CustomersActionTypes} from "./customers.interface";
+import axios from "axios";
 
-export const fetchCustomers = () => {
-    return dispatch => {
-        fetch('https://jsonplaceholder.typicode.com/users')
-            .then(response => response.json())
-            .then(json => dispatch(addManyCustomerAction(json)))
+export const fetchCustomers = ()=> {
+    return async (dispatch: Dispatch<CustomersAction>) => {
+        try {
+            dispatch({type: CustomersActionTypes.FETCH_CUSTOMERS})
+            const response = await axios.get<Customer[]>('https://jsonplaceholder.typicode.com/users')
+            dispatch({type: CustomersActionTypes.FETCH_CUSTOMERS_SUCCESS, payload: response.data})
+        } catch (e) {
+            dispatch({type: CustomersActionTypes.FETCH_CUSTOMERS_ERROR, payload: 'Error while fetching customers'})
+        }
     }
 }
 ```
 
-Update customerReducer:
-```typescript jsx
-// ~/src/store/customerReducer
-const defaultState = {
-    customers: []
+Here we created action creator for async code.
+
+That's it! Thunk middleware logic is simple. Thunk just returns dispatch function in thunk action, and nothing more.
+
+To make our life simpler we will create hook called useActions. 
+
+```typescript
+// ~/src/store/hooks/use-action.hook.ts
+import {useDispatch} from "react-redux";
+import {bindActionCreators} from "redux";
+import ActionCreators from '../index'
+
+export const useActions = () => {
+    const dispatch = useDispatch()
+    return bindActionCreators(ActionCreators, dispatch)
 }
-
-const ADD_CUSTOMER = "ADD_CUSTOMER"
-const REMOVE_CUSTOMER = "REMOVE_CUSTOMER"
-const ADD_MANY_CUSTOMERS = "ADD_MANY_CUSTOMERS"
-
-export const customerReducer = (state = defaultState, action) => {
-    switch (action.type) {
-        case ADD_MANY_CUSTOMERS:
-            return {...state, customers: [...state.customers, ...action.payload]}
-        case ADD_CUSTOMER:
-            return {...state, customers: [...state.customers, action.payload]}
-        case REMOVE_CUSTOMER:
-            return {...state, customers: state.customers.filter((customer)=>customer.id!==action.payload)}
-        default:
-            return state;
-    }
-}
-
-export const addCustomerAction = (payload) => ({type: ADD_CUSTOMER, payload})
-export const addManyCustomerAction = (payload) => ({type: ADD_MANY_CUSTOMERS, payload})
-export const removeCustomerAction = (payload) => ({type: REMOVE_CUSTOMER, payload})
 ```
 
-Here we created action and action creator for async code.
+This hook allows us to not dispatch our thunk actions, but just call them.
 
-Now lets move to saga. In redux-saga we have three main points: workers, watchers, effects.
+```typescript
+//Without hook
+dispatch(fetchCustomers())
+
+//With hook
+fetchCustomers()
+```
+
+---
+
+Now lets move to saga. In redux-saga we have three main points: **workers**, **watchers**, **effects**.
 Redux-saga based on functions generators. 
 
 First of all lets install redux-saga:
@@ -211,13 +245,13 @@ First of all lets install redux-saga:
   $ npm i redux-saga
 ```
 
-Worker is a function, where we execute any async logic.
+- Worker is a function, where we execute any async logic.
 
-Watcher is a function generator, where with special functions we choose type of action and worker,
+- Watcher is a function generator, where with special functions we choose type of action and worker,
 which will execute by action type. Simply, watcher observes till any action executes. If any worker connected
 to this action watcher calls this worker.
 
-Effects is a set of redux-saga functions, witch helps to make requests, make dispatch, observe workers and so on...
+- Effects is a set of redux-saga functions, witch helps to make requests, make dispatch, observe workers and so on...
 
 Function generators declaration:
 ```typescript
@@ -253,8 +287,9 @@ in the end we will receive:
     }
 ```
 
-Create saga folder and countSaga.ts file here:
+Create count.saga.ts in saga/count folder:
 ```typescript
+// ~/src/store/saga/count/count.saga.ts
 import {put} from 'redux-saga/effects'
 
 const delay = (ms) => new Promise(res=>setTimeout(res,ms))
@@ -275,29 +310,45 @@ function* countWatcher() {
 Put effect is a dispatch for async actions. Lets create delay function, that will 
 create fake delay. Update our functions: 
 ```typescript
-import {put, takeEvery} from 'redux-saga/effects'
+// ~/src/store/saga/count/count.saga.ts
+import {call, put, SagaReturnType, takeEvery} from "redux-saga/effects"
+import {CountActionTypes} from "./count.interface";
 import {
-    ASYNC_DECREMENT_CASH,
-    ASYNC_INCREMENT_CASH,
-    asyncDecrementCashAction,
-    asyncIncrementCashAction
-} from "../store/cashReducer";
+    decrement,
+    decrementError,
+    decrementSuccess,
+    increment,
+    incrementError,
+    incrementSuccess
+} from "./count.action-creators";
 
-const delay = (ms) => new Promise(res=>setTimeout(res,ms))
+const delay = (ms: number) => new Promise((res, rej) => {
+    setTimeout(()=>res('Resolved'), ms)
+})
 
-function* incrementWorkers() {
-    yield delay(1000)
-    yield put(asyncIncrementCashAction())
+function* asyncIncrementWorker() {
+    try {
+        yield put(increment())
+        yield delay(1000)
+        yield put(incrementSuccess())
+    } catch (e) {
+        yield put(incrementError('Cannot increment'))
+    }
 }
 
-function* decrementWorkers() {
-    yield delay(1000)
-    yield put(asyncDecrementCashAction())
+function* asyncDecrementWorker() {
+    try {
+        yield put(decrement())
+        yield delay(1000)
+        yield put(decrementSuccess())
+    } catch (e) {
+        yield put(decrementError('Cannot decrement'))
+    }
 }
 
 export function* countWatcher() {
-    yield takeEvery(ASYNC_INCREMENT_CASH, incrementWorkers)
-    yield takeEvery(ASYNC_DECREMENT_CASH, decrementWorkers)
+    yield takeEvery(CountActionTypes.ASYNC_INCREMENT, asyncIncrementWorker)
+    yield takeEvery(CountActionTypes.ASYNC_DECREMENT, asyncDecrementWorker)
 }
 ```
 

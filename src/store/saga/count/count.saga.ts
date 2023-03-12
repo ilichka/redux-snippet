@@ -1,4 +1,4 @@
-import {call, put, SagaReturnType, takeEvery} from "redux-saga/effects"
+import {put, takeEvery} from "redux-saga/effects"
 import {CountActionTypes} from "./count.interface";
 import {
     decrement,
@@ -34,6 +34,6 @@ function* asyncDecrementWorker() {
 }
 
 export function* countWatcher() {
-    yield takeEvery(CountActionTypes.ASYNC_INCREMENT, asyncIncrementWorker)
-    yield takeEvery(CountActionTypes.ASYNC_DECREMENT, asyncDecrementWorker)
+    yield takeEvery(CountActionTypes.INCREMENT_SAGA, asyncIncrementWorker)
+    yield takeEvery(CountActionTypes.DECREMENT_SAGA, asyncDecrementWorker)
 }

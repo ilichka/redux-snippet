@@ -3,16 +3,16 @@ import {Button} from "../common/button";
 import {useDispatch} from "react-redux";
 import {useCallback} from "react";
 import {useTypedSelector} from "../../store/hooks";
-import {asyncIncrement, asyncDecrement} from "../../store/saga/count";
-import {fetchUsers, fetchUsersSaga} from "../../store/saga/users";
+import {incrementSaga, decrementSaga} from "../../store/saga/count";
+import {fetchUsersSaga} from "../../store/saga/users";
 
 export const SagaTemplate = () => {
     const count = useTypedSelector((state) => state.count.count)
     const users = useTypedSelector((state) => state.users.users)
     const dispatch = useDispatch()
 
-    const handleAsyncIncrement = useCallback(()=>dispatch(asyncIncrement()),[dispatch])
-    const handleAsyncDecrement = useCallback(()=>dispatch(asyncDecrement()),[dispatch])
+    const handleAsyncIncrement = useCallback(()=>dispatch(incrementSaga()),[dispatch])
+    const handleAsyncDecrement = useCallback(()=>dispatch(decrementSaga()),[dispatch])
     const getUsers = useCallback(()=>dispatch(fetchUsersSaga()),[dispatch])
 
     return <S.SagaTemplateWrapper>
